@@ -64,8 +64,8 @@ Solution* chromo_to_solution(Chromo chromo, int matrix[NUM_JOBS][NUM_MACHINES]) 
                         if (sol->machines[m].jobs[j].job_id == job) {
                             int start_p = sol->machines[m].jobs[j].start;
                             int end_p   = sol->machines[m].jobs[j].end;
-                            if ((((start < start_p) && (start_p < end)) || ((start < end_p) && (end_p < end))) || 
-                                (((start_p < start) && (start < start_p)) && ((start_p < end) && (end < start_p)))) {
+                            if ((((start < start_p) && (start_p <= end)) || ((start < end_p) && (end_p <= end))) || 
+                                (((start_p <= start) && (start < end_p)) && ((start_p < end) && (end <= end_p)))) {
                                 start = sol->machines[m].jobs[j].end;
                                 end   = start + matrix[job][machine];
                                 flag  = 1;
@@ -152,6 +152,54 @@ void mutation(Chromo chromo) {
     chromo[index2] = aux;
 }
 
-Chromo crossover(Chromo chromo1, Chromo chromo2) {
+int chromo_contains(Chromo chromo, int value) {
+    for (int i = 0; i < CHROMO_SIZE; i++)
+        if (chromo[i] == value)
+            return 1;
+    
+    return 0;
+}
 
+Chromo crossover(Chromo chromo1, Chromo chromo2) {
+    Chromo new_chromo, chromo2_ext;
+    new_chromo  = malloc(sizeof(Chromo));
+    chromo2_ext = malloc(sizeof(Chromo) * 2);
+    for (int i = 0; i < CHROMO_SIZE; i++)
+        new_chromo[i] = -1;
+    
+    for (int i = 0; i < CHROMO_SIZE * 2; i++)
+        chromo2_ext[i] = chromo2[i % (CHROMO_SIZE)];
+
+    int index1 = rand() % CHROMO_SIZE;
+    int index2 = (rand() % (CHROMO_SIZE - index1)) + index1;
+
+    printf("%d %d\n", index1, index2);
+    
+    for (int i = index1; i <= index2; i++) {
+        new_chromo[i] = chromo1[i];
+    }
+
+    for (int i = index2; i < CHROMO_SIZE; i++) {
+        int index_p = i;
+        while (chromo_contains(new_chromo, chromo2_ext[index_p])) {
+            index_p++;
+            if (index_p == CHROMO_SIZE * 2) {
+                break;
+            }
+        }
+        new_chromo[i] = chromo2_ext[index_p];
+    }
+
+    for (int i = 0; i < index1; i++) {
+        int index_p = i;
+        while (chromo_contains(new_chromo, chromo2_ext[index_p])) {
+            index_p++;
+            if (index_p == CHROMO_SIZE * 2) {
+                break;
+            }
+        }
+        new_chromo[i] = chromo2_ext[index_p];
+    }
+
+    return new_chromo;
 }

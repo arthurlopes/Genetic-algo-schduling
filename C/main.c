@@ -26,7 +26,16 @@ int main() {
     print_chromo(*pop[26]);
     print_chromo(*pop[21]);
 
-    
+    printf("Mutation\n");
+    print_chromo(chromo1);
+    mutation(chromo1);
+    print_chromo(chromo1);
+
+    printf("Crossover\n");
+    print_chromo(chromo1);
+    print_chromo(chromo2);
+    Chromo chromo3 = crossover(chromo1, chromo2);
+    print_chromo(chromo3);
 
     return 0;
 }

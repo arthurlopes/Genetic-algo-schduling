@@ -24,3 +24,5 @@ Solution* chromo_to_solution(Chromo chromo, int matrix[NUM_JOBS][NUM_MACHINES]);
 Solution* create_dummy_solution();
 void print_solution(Solution* sol);
 Population* generate_initial_population();
+void mutation(Chromo chromo);
+Chromo crossover(Chromo chromo1, Chromo chromo2);
