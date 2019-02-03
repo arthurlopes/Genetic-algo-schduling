@@ -9,3 +9,6 @@
 #define KILL_RATIO 0.5
 
 #define MAX_ITER 200
+
+extern int input_matrix[NUM_JOBS][NUM_MACHINES];
+extern int input_array[NUM_JOBS];

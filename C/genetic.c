@@ -9,7 +9,7 @@ void initialize() {
     srand(time(NULL));
 }
 
-Chromo* generate_chromo(int matrix[NUM_JOBS][NUM_MACHINES]) {
+Chromo* generate_chromo() {
     Chromo* chromo;
     chromo = (Chromo*)malloc(sizeof(Chromo));
 
@@ -22,7 +22,7 @@ Chromo* generate_chromo(int matrix[NUM_JOBS][NUM_MACHINES]) {
         t = chromo->arr[j]; chromo->arr[j] = chromo->arr[i]; chromo->arr[i] = t; // Swap i and j
     }
 
-    chromo->fitness = fitness_func(chromo, matrix);
+    chromo->fitness = fitness_func_with_weights(chromo);
 
     return chromo;
 }
@@ -34,7 +34,7 @@ void print_chromo(Chromo* chromo) {
     printf(" - %f\n", chromo->fitness);
 }
 
-Solution* chromo_to_solution(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES]) {
+Solution* chromo_to_solution(Chromo* chromo) {
     Solution* sol;
     sol = create_dummy_solution();
 
@@ -52,7 +52,7 @@ Solution* chromo_to_solution(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES])
         int machine = (index % NUM_JOBS);
 
         int start   = sol->machines[machine].jobs[last_used[machine]].end;
-        int end     = start + matrix[job][machine];
+        int end     = start + input_matrix[job][machine];
 
         int flag = 1;
 
@@ -69,7 +69,7 @@ Solution* chromo_to_solution(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES])
                             if ((((start < start_p) && (start_p <= end)) || ((start < end_p) && (end_p <= end))) || 
                                 (((start_p <= start) && (start < end_p)) && ((start_p < end) && (end <= end_p)))) {
                                 start = sol->machines[m].jobs[j].end;
-                                end   = start + matrix[job][machine];
+                                end   = start + input_matrix[job][machine];
                                 flag  = 1;
                             }
                         }
@@ -119,7 +119,7 @@ void print_solution(Solution* sol) {
     
     printf("------------------------------------------------------------------------------\n");
     for (int i = 0; i < NUM_MACHINES; i++) {
-        for (int j = 0; j < NUM_JOBS + 1; j++) {
+        for (int j = 1; j < NUM_JOBS + 1; j++) {
             printf("(%d, %d, %d) ", sol->machines[i].jobs[j].start, sol->machines[i].jobs[j].end, sol->machines[i].jobs[j].job_id);
         }
         printf("\n");
@@ -128,7 +128,7 @@ void print_solution(Solution* sol) {
 
 }
 
-double fitness_func(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES]) {
+double fitness_func(Chromo* chromo) {
     Solution* sol;
     int max = 0;
 
@@ -136,7 +136,7 @@ double fitness_func(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES]) {
         return 0.0;
     }
 
-    sol = chromo_to_solution(chromo, matrix);
+    sol = chromo_to_solution(chromo);
 
     for (int i = 0; i < NUM_MACHINES; i++) {
         if (max < sol->machines[i].jobs[NUM_JOBS].end) {
@@ -147,12 +147,37 @@ double fitness_func(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES]) {
     return 1.0/max;
 }
 
-Population generate_initial_population(int matrix[NUM_JOBS][NUM_MACHINES]) {
+double fitness_func_with_weights(Chromo* chromo) {
+    Solution* sol;
+    int total = 0;
+
+    if (chromo == NULL) {
+        return 0.0;
+    }
+
+    sol = chromo_to_solution(chromo);
+
+    for (int j = 0; j < NUM_JOBS; j++) {
+        int max = 0;
+        for (int m = 0; m < NUM_MACHINES; m++) {
+            for (int i = 1; i < NUM_JOBS + 1; i++) {
+                if (sol->machines[m].jobs[i].job_id == j && max < sol->machines[m].jobs[i].end) {
+                    max = sol->machines[m].jobs[i].end;
+                }
+            }
+        }
+        total += max * input_array[j];
+    }
+
+    return 1.0/total;
+}
+
+Population generate_initial_population() {
     Chromo** pop;
     pop = malloc(sizeof(Chromo*) * POPULATION_SIZE);
 
     for (int i = 0; i < POPULATION_SIZE; i++) {
-        pop[i] = generate_chromo(matrix);
+        pop[i] = generate_chromo();
     }
 
     return pop;
@@ -175,7 +200,7 @@ int chromo_contains(Chromo* chromo, int value) {
     return 0;
 }
 
-Chromo* crossover(Chromo* chromo1, Chromo* chromo2, int matrix[NUM_JOBS][NUM_MACHINES]) {
+Chromo* crossover(Chromo* chromo1, Chromo* chromo2) {
     Chromo* new_chromo;
     int *chromo2_ext;
     new_chromo  = malloc(sizeof(Chromo));
@@ -221,14 +246,14 @@ Chromo* crossover(Chromo* chromo1, Chromo* chromo2, int matrix[NUM_JOBS][NUM_MAC
         new_chromo->arr[i] = chromo2_ext[index_p];
     }
 
-    new_chromo->fitness = fitness_func(new_chromo, matrix);
+    new_chromo->fitness = fitness_func_with_weights(new_chromo);
 
     return new_chromo;
 }
 
-Chromo* find_fittest(Population population, int matrix[NUM_JOBS][NUM_MACHINES]) {
+Chromo* find_fittest(Population population) {
     Chromo* fittest = population[0];
-    int fit = fitness_func(fittest, matrix);
+    int fit = fitness_func_with_weights(fittest);
 
     for (int i = 1; i < POPULATION_SIZE; i++) {
         if (population[i]->fitness > fit) {
@@ -263,7 +288,7 @@ void print_population(Population population) {
     }
 }
 
-Chromo* generate_ind_crossover(Population population, double* prob_array, int population_size, int matrix[NUM_JOBS][NUM_MACHINES]) {
+Chromo* generate_ind_crossover(Population population, double* prob_array, int population_size) {
     Chromo* new_chromo;
     new_chromo  = malloc(sizeof(Chromo));
 
@@ -283,7 +308,7 @@ Chromo* generate_ind_crossover(Population population, double* prob_array, int po
         }
     }
 
-    new_chromo = crossover(population[parent1], population[parent2], matrix);
+    new_chromo = crossover(population[parent1], population[parent2]);
 
     if (rand()%100 < MUTATION_PROB * 100) {
         mutation(new_chromo);
@@ -302,7 +327,7 @@ void get_prob(Population population, double* prob_array) {
     }
 }
 
-void generate_offspring(Population population, int matrix[NUM_JOBS][NUM_MACHINES]) {
+void generate_offspring(Population population) {
     double* prob_array;
     prob_array = malloc(sizeof(double) * POPULATION_SIZE);
 
@@ -310,27 +335,27 @@ void generate_offspring(Population population, int matrix[NUM_JOBS][NUM_MACHINES
     get_prob(population, prob_array);
 
     for (int i = POPULATION_SIZE*KILL_RATIO; i < POPULATION_SIZE; i++) {
-        Chromo* new_ind = generate_ind_crossover(population, prob_array, i, matrix);
+        Chromo* new_ind = generate_ind_crossover(population, prob_array, i);
         population[i] = new_ind;
     }
 
 }
 
-Chromo* genetic_algo(int matrix[NUM_JOBS][NUM_MACHINES]) {
+Chromo* genetic_algo() {
     int cur_iter = 1;
     Chromo* best_solution = create_dummy_chromo();
-    Population population = generate_initial_population(matrix);
+    Population population = generate_initial_population();
 
     while (cur_iter < MAX_ITER) {
         printf(" Generation \r%d", cur_iter);
         fflush(stdout);
 
-        Chromo* best_gen = find_fittest(population, matrix);
+        Chromo* best_gen = find_fittest(population);
         if (best_gen->fitness > best_solution->fitness) {
             best_solution = best_gen;
         }
 
-        generate_offspring(population, matrix);
+        generate_offspring(population);
         cur_iter++;
     }
     printf("\n");

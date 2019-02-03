@@ -21,21 +21,22 @@ typedef Chromo** Population;
 
 void initialize();
 
-Chromo* generate_chromo(int matrix[NUM_JOBS][NUM_MACHINES]);
+Chromo* generate_chromo();
 void print_chromo(Chromo* chromo);
 void print_population(Population population);
 void print_solution(Solution* sol);
 
-Solution* chromo_to_solution(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES]);
+Solution* chromo_to_solution(Chromo* chromo);
 Solution* create_dummy_solution();
 
-double fitness_func(Chromo* chromo, int matrix[NUM_JOBS][NUM_MACHINES]);
-Population generate_initial_population(int matrix[NUM_JOBS][NUM_MACHINES]);
+double fitness_func(Chromo* chromo);
+double fitness_func_with_weights(Chromo* chromo);
+Population generate_initial_population();
 void mutation(Chromo* chromo);
-Chromo* crossover(Chromo* chromo1, Chromo* chromo2, int matrix[NUM_JOBS][NUM_MACHINES]);
-Chromo* find_fittest(Population population, int matrix[NUM_JOBS][NUM_MACHINES]);
+Chromo* crossover(Chromo* chromo1, Chromo* chromo2);
+Chromo* find_fittest(Population population);
 void sort_population(Population population);
-Chromo* generate_ind_crossover(Population population, double* prob_array, int population_size, int matrix[NUM_JOBS][NUM_MACHINES]);
-void generate_offspring(Population population, int matrix[NUM_JOBS][NUM_MACHINES]);
+Chromo* generate_ind_crossover(Population population, double* prob_array, int population_size);
+void generate_offspring(Population population);
 
-Chromo* genetic_algo(int matrix[NUM_JOBS][NUM_MACHINES]);
+Chromo* genetic_algo();

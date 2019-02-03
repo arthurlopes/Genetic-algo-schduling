@@ -9,14 +9,17 @@ int input_matrix[NUM_JOBS][NUM_MACHINES] =
      {38, 19, 28, 87}, 
      {95,  7, 34, 29}};
 
+int input_array[NUM_JOBS] =
+    {4, 2, 6, 3};
+
 int main() {
 
     initialize();
 
     Chromo* best_solution;
-    best_solution = genetic_algo(input_matrix);
+    best_solution = genetic_algo();
     print_chromo(best_solution);
-    print_solution(chromo_to_solution(best_solution, input_matrix));
+    print_solution(chromo_to_solution(best_solution));
     printf("Cost: %f\n", 1/best_solution->fitness);
 
     return 0;
